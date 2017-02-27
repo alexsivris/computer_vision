@@ -1,0 +1,1 @@
+/home/alex/projects/Learning_OpenCV/display_picture/build/CMakeFiles/display_picture.dir

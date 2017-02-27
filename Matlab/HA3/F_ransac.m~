@@ -1,0 +1,35 @@
+function [Korrespondenzen_robust] = F_ransac(Korrespondenzen,varargin)
+% Diese Funktion implementiert den RANSAC-Algorithmus zur Bestimmung von
+% robusten Korrespondenzpunktpaaren
+p = inputParser;
+defaultEpsilon = 0;
+defaultProbability = 0;
+defaultTolerance = 0;
+addOptional(p,'epsilon',defaultEpsilon,@isnumeric);
+addOptional(p,'p',defaultProbability,@isnumeric);
+addOptional(p,'tolerance',defaultTolerance,@isnumeric);
+
+% Iterationszahl
+k=8;
+s = log(1-defaultProbability)/(log(1-(1-defaultEpsilon)^k));
+
+e3 = [0;0;1];
+for m=1:s
+    % 8 zufaellige KP-Paare
+    idx = ceil(rand(1,k))*size(Korrespondenzen,2);
+    [F] = achtpunktalgorithmus(Korrespondenzen(:,idx),K);
+    for n=1:idx
+        for t=1:idx
+            
+            x1 = [Korrespondenzen(1:2,n); 1];
+            x2 = [Korrespondenzen(3:4,t); 1];
+            % Sa
+            d_sampson = (x2'*F*x1)^2/(sqrt((e3*F*x1).^2).^2 + sqrt((x2*F*e3).^2).^2);
+            if (d_sampson>tolerance)
+                Korrespondenzen_robust(end+1,:) = [x1;x2];
+            end
+        end
+    end
+    
+end
+end
