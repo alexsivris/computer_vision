@@ -21,7 +21,7 @@ void onTrackbarSlide( int pos, void *) {
 
 int main( int argc, char** argv ) {
 
-  cv::namedWindow( "Example2_4", cv::WINDOW_AUTOSIZE );
+  cv::namedWindow( "Example", cv::WINDOW_AUTOSIZE );
   g_cap.open( string(argv[1]) );
   int frames = (int) g_cap.get(cv::CAP_PROP_FRAME_COUNT);
   int tmpw   = (int) g_cap.get(cv::CAP_PROP_FRAME_WIDTH);
@@ -29,7 +29,7 @@ int main( int argc, char** argv ) {
   cout << "Video has " << frames << " frames of dimensions("
        << tmpw << ", " << tmph << ")." << endl;
 
-  cv::createTrackbar("Position", "Example2_4", &g_slider_position, frames,
+  cv::createTrackbar("Position", "Example", &g_slider_position, frames,
                  onTrackbarSlide);
 
   cv::Mat frame;
@@ -41,8 +41,8 @@ int main( int argc, char** argv ) {
       int current_pos = (int)g_cap.get(cv::CAP_PROP_POS_FRAMES);
       g_dontset = 1;
 
-      cv::setTrackbarPos("Position", "Example2_4", current_pos);
-      cv::imshow( "Example2_4", frame );
+      cv::setTrackbarPos("Position", "Example", current_pos);
+      cv::imshow( "Example", frame );
 
       g_run-=1;
 
