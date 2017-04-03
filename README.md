@@ -5,7 +5,7 @@ This repository includes some common C++ snippets using OpenCV3. Moreover, some 
 # Contents #
 
 *  /Projects
-	*  /integral_histograms: implementation of integral histograms as proposed in "Integral Histogram: A Fast Way to Extract Histograms in Cartesian Spaces" by Fatih Porikli
+	*  /integral_histograms: implementation of integral histograms as proposed in "Integral Histogram: A Fast Way to Extract Histograms in Cartesian Spaces" by Fatih Porikli. Integral histograms can be used for real-time object detection. Once the integral histogram of an image is computed, the histogram of any region can be computed in constant time (as with integral images).
 	*  /homework\_computer\_vision\_TUM: Matlab homework of lecture "Computer Vision" (3D point reconstruction)
 
 *  /Snippets
