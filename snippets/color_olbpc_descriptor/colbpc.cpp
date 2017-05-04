@@ -13,7 +13,8 @@ int main(int argc, char ** argv)
     cvtColor(tpl_bgr,tpl_hsv,COLOR_BGR2HSV);
 
 
-    Mat tpl_colbpc(tpl_hsv.rows,tpl_hsv.cols,CV_8UC2, Scalar::all(0));
+    Mat tpl_colbpc(tpl_hsv.rows,tpl_hsv.cols,CV_8UC1, Scalar::all(0));
+    Mat tpl_colbpc2(tpl_hsv.rows,tpl_hsv.cols,CV_8UC1, Scalar::all(0));
 
     /* 1. calculate OLBP code for the hue channel */
 
@@ -27,22 +28,22 @@ int main(int argc, char ** argv)
             unsigned char lbp = 0x00;
 
             // diagonal
-            if (hsv_split[0].at<uchar>(y-1,x+1) > hsv_split[0].at<uchar>(y,x)) lbp |= (0x01 << 4);
-            if (hsv_split[0].at<uchar>(y-1,x-1) > hsv_split[0].at<uchar>(y,x)) lbp |= (0x01 << 5);
-            if (hsv_split[0].at<uchar>(y+1,x-1) > hsv_split[0].at<uchar>(y,x)) lbp |= (0x01 << 6);
-            if (hsv_split[0].at<uchar>(y+1,x+1) > hsv_split[0].at<uchar>(y,x)) lbp |= (0x01 << 7);
-            tpl_colbpc.at<Vec2i>(y,x)[0] = lbp;
+            if (hsv_split[0].at<uchar>(y-1,x+1) > hsv_split[0].at<uchar>(y,x)) lbp |= (0x01);
+            if (hsv_split[0].at<uchar>(y-1,x-1) > hsv_split[0].at<uchar>(y,x)) lbp |= (0x01 << 1);
+            if (hsv_split[0].at<uchar>(y+1,x-1) > hsv_split[0].at<uchar>(y,x)) lbp |= (0x01 << 2);
+            if (hsv_split[0].at<uchar>(y+1,x+1) > hsv_split[0].at<uchar>(y,x)) lbp |= (0x01 << 3);
+            tpl_colbpc.at<uchar>(y,x) = lbp;
             //cout << "lbp (diag.): " << bitset<8>(tpl_colbpc.at<Vec2i>(y,x)[0]) << endl;
 
 
-            lbp = 0x00;
+            unsigned char lbp2 = 0x00;
             // orthogonal
-            if (hsv_split[0].at<uchar>(y,x+1) > hsv_split[0].at<uchar>(y,x)) lbp |= (0x01 << 4);
-            if (hsv_split[0].at<uchar>(y-1,x) > hsv_split[0].at<uchar>(y,x)) lbp |= (0x01 << 5);
-            if (hsv_split[0].at<uchar>(y,x-1) > hsv_split[0].at<uchar>(y,x)) lbp |= (0x01 << 6);
-            if (hsv_split[0].at<uchar>(y+1,x) > hsv_split[0].at<uchar>(y,x)) lbp |= (0x01 << 7);
-            tpl_colbpc.at<Vec2i>(y,x)[1] = lbp;
-            //cout << (unsigned int)lbp << endl << bitset<8>(tpl_colbpc.at<Vec2i>(y,x)[1]) << endl;
+            if (hsv_split[0].at<uchar>(y,x+1) > hsv_split[0].at<uchar>(y,x)) lbp2 |= (0x01);
+            if (hsv_split[0].at<uchar>(y-1,x) > hsv_split[0].at<uchar>(y,x)) lbp2 |= (0x01 << 1);
+            if (hsv_split[0].at<uchar>(y,x-1) > hsv_split[0].at<uchar>(y,x)) lbp2 |= (0x01 << 2);
+            if (hsv_split[0].at<uchar>(y+1,x) > hsv_split[0].at<uchar>(y,x)) lbp2 |= (0x01 << 3);
+            tpl_colbpc2.at<uchar>(y,x) = lbp2;
+            //cout << bitset<8>(tpl_colbpc.at<Vec2i>(y,x)[1]) << endl;
 
         }
     }
@@ -51,15 +52,14 @@ int main(int argc, char ** argv)
 
     vector<Mat> tpl_split(2);
     split(tpl_colbpc,tpl_split);
-    cout << bitset<8>(tpl_colbpc.at<Vec2i>(1,7)[0]) << " " << bitset<8>(tpl_colbpc.at<Vec2i>(1,7)[1]) << endl;
-    cout << bitset<8>(tpl_split[0].at<unsigned int>(1,7)) << " " << bitset<8>(tpl_split[1].at<int>(1,7)) << endl;
-    imshow("Binary pattern[0]", tpl_split[0]);
-    imshow("Binary pattern[1]", tpl_split[1]);
-
+    cout << bitset<8>(tpl_colbpc.at<unsigned int>(1,7)) << " " << bitset<8>(tpl_colbpc2.at<unsigned int>(1,7)) << endl;
+    imshow("Binary diagonal", tpl_colbpc);
+    imshow("Binary orthogonal", tpl_colbpc2);
+    //cout << tpl_split[0] << endl << tpl_split[1];
 
     /* 2. Histogram of COLBPC */
     Mat lbp_hist,lbp_hist2;
-    vector<Mat> in_lbp = {tpl_split[0]};
+    vector<Mat> in_lbp = {tpl_colbpc};
     int bins = 16;
     vector<int> chans = {0};
     vector<int> sizes = {bins};
@@ -70,13 +70,17 @@ int main(int argc, char ** argv)
 
 
     in_lbp.clear();
-    in_lbp.push_back(tpl_split[1]);
+    in_lbp.push_back(tpl_colbpc2);
     vector<int> chans2 = {0};
-    vector<float> ranges2 = {0,255};
+    vector<float> ranges2 = {0,16};
     calcHist(in_lbp,chans2,noArray(),lbp_hist2,sizes,ranges2);
     transpose(lbp_hist2,lbp_hist2);
 
     cout << lbp_hist2 << endl;
+
+    Mat olbpc_descriptor;
+    hconcat(lbp_hist, lbp_hist2,olbpc_descriptor);
+    cout << olbpc_descriptor << endl;
 
 
 
